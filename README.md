@@ -1,6 +1,6 @@
 # Simple-DataBase-App
 
-This simple databse appliaction implentes the following:
+This simple databse appliaction implements the following:
 
 Insert = First and Last name, and email.
 
