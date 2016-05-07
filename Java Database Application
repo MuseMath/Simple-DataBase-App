@@ -1,0 +1,182 @@
+import java.sql.*;
+import java.util.Scanner;
+
+
+public class MySQLConnection
+{
+    private static String tableName = "employee";
+    // jdbc Connection
+    private static Connection conn = null;
+    private static Statement stmt = null;
+
+    public static void main(String[] args)
+    {
+        Scanner in = new Scanner(System.in);
+        String first, last, email;
+        boolean again = true;
+        createConnection();
+
+        while (again) {
+            System.out.println("What would you like to do: \n" +
+                    "1) Insert\n" +
+                    "2) Update\n" +
+                    "3) Delete\n" +
+                    "4) Print\n"  +
+                    "5) Exit");
+            int choice = in.nextInt();
+            in.nextLine();
+
+            switch (choice) {
+                case 1:
+                    System.out.print("First Name: ");
+                    first = in.nextLine();
+                    System.out.print("\nLast Name: ");
+                    last = in.nextLine();
+                    System.out.print("\nEmail: ");
+                    email = in.nextLine();
+                    System.out.println();
+                    insertEmployee(first, last, email);
+                    break;
+                case 2:
+                    System.out.print("What is the last name of peron to UPDATE: ");
+                    last = in.nextLine();
+                    System.out.println();
+                    System.out.print("Give first name to update: ");
+                    first = in.nextLine();
+                    System.out.println();
+                    updateEmployee(first, last);
+                    break;
+                case 3:
+                    System.out.print("What is the last name of peron to DELETE: ");
+                    last = in.nextLine();
+                    System.out.println();
+                    deleteEmployee(last);
+                    break;
+                case 4:
+                    printEmployee();
+                    break;
+                case 5:
+                    again = false;
+                    shutdown();
+                    break;
+                default:
+                    System.out.println("Invalid Choice!");
+                    break;
+            }
+        }
+
+    }
+
+    private static void createConnection()
+    {
+        try
+        {
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+            //Get a connection
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mmtut", "root", "password");
+        }
+        catch (Exception e)
+        {
+            System.err.println("Got an exception from createConnection");
+            System.err.println(e.getMessage());
+        }
+    }
+
+    private static void insertEmployee(String firstName, String lastName, String email)
+    {
+        try
+        {
+            // 2. Prepare statement
+            PreparedStatement stmt = conn.prepareStatement("INSERT into " + tableName + "(first_name, last_name, email)" +
+                    "values (?, ?, ?)");
+
+            // 3. Set the parameters.
+            stmt.setString (1, firstName);
+            stmt.setString (2, lastName);
+            stmt.setString (3, email);
+
+            // 4. execute the prepared statement
+            stmt.execute();
+        }
+        catch (SQLException e)
+        {
+            System.err.println("Got an exception from insertEmployee");
+            System.err.println(e.getMessage());
+        }
+    }
+
+    private static void printEmployee()
+    {
+        try
+        {
+            stmt = conn.createStatement();
+            ResultSet result = stmt.executeQuery("select * from " + tableName);
+            while(result.next())
+            {
+                System.out.println("Name: " + result.getString("first_name") + " " + result.getString("last_name") + "\nemail: " + result.getString("email"));
+                System.out.println();
+            }
+            result.close();
+            stmt.close();
+        }
+        catch (SQLException e)
+        {
+            System.err.println("Got an exception from printEmployee");
+            System.err.println(e.getMessage());
+        }
+    }
+
+    private static void updateEmployee(String firstName, String lastName)
+    {
+        try
+        {
+            Statement stmt = conn.createStatement();
+
+            // 3. Execute SQL query
+            String sql = "update " + tableName + " set first_name = " + " '" + firstName + "' " + //"update customer set address = '8033 elam' where firstName = 'Gamaliel'"
+                    "where last_name = " + " '" + lastName +"'";
+            stmt.executeUpdate(sql);
+            stmt.close();
+        }
+        catch (SQLException e)
+        {
+            System.err.println("Got an exception from updateEmployee");
+            System.err.println(e.getMessage());
+        }
+    }
+
+    private static void deleteEmployee(String lastName)
+    {
+        try
+        {
+            // 2. Create statement
+            Statement stmt = conn.createStatement();
+
+            String sql = "DELETE FROM employee"
+                    +" WHERE last_name = '" + lastName + "'";
+
+            // 3. Execute SQL query
+            stmt.executeUpdate(sql);
+            stmt.close();
+        }
+        catch (SQLException e)
+        {
+            System.err.println("Got an exception from deleteEmployee");
+            System.err.println(e.getMessage());
+        }
+    }
+
+    private static void shutdown()
+    {
+        try {
+            stmt.close();
+            conn.close();
+        }
+        catch (SQLException e)
+        {
+            System.err.println("Got an exception from shutdown");
+            System.err.println(e.getMessage());
+        }
+
+    }
+}
